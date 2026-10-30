@@ -24,7 +24,9 @@ class PostResponse(BaseModel):
     id: int
     body: str
     user_id: int
-    username: str  
+    username: str
+    likes_count: int = 0      # <-- Add
+    is_liked: bool = False    # <-- Add
     allow_comments: bool
     created_at: datetime
 

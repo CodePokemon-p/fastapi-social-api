@@ -8,16 +8,28 @@ export default function Home() {
   const [posts, setPosts] = useState([]);
   const [newPost, setNewPost] = useState("");
   const [loading, setLoading] = useState(true);
+  const [skip, setSkip] = useState(0); // NEW: For pagination
+  const [hasMore, setHasMore] = useState(true); // NEW: Checks if there are more posts
 
-  // Fetch posts on load
   useEffect(() => {
     fetchPosts();
   }, []);
 
-  const fetchPosts = async () => {
+  const fetchPosts = async (isLoadMore = false) => {
     try {
-      const res = await API.get('/posts');
-      setPosts(res.data);
+      const currentSkip = isLoadMore ? skip : 0;
+      // Fetch 5 posts at a time
+      const res = await API.get(`/posts?skip=${currentSkip}&limit=5`);
+      
+      if (res.data.length < 5) setHasMore(false);
+      
+      if (isLoadMore) {
+        setPosts([...posts, ...res.data]);
+        setSkip(currentSkip + 5);
+      } else {
+        setPosts(res.data);
+        setSkip(5);
+      }
     } catch (err) {
       console.error(err);
     } finally {
@@ -30,16 +42,13 @@ export default function Home() {
     if (!newPost.trim()) return;
     try {
       const res = await API.post('/posts', { body: newPost });
-      setPosts([res.data, ...posts]); // Add new post to top
+      setPosts([res.data, ...posts]);
       setNewPost("");
-    } catch (err) {
-      alert("Failed to create post");
-    }
+    } catch (err) { alert("Failed to create post"); }
   };
 
   return (
     <div className="max-w-2xl mx-auto">
-      {/* Create Post Form */}
       {user && (
         <div className="bg-white p-4 rounded-xl shadow-sm mb-6">
           <form onSubmit={handleCreatePost}>
@@ -59,19 +68,28 @@ export default function Home() {
         </div>
       )}
 
-      {/* Feed */}
       {loading ? (
         <p className="text-center text-gray-500 mt-10">Loading posts...</p>
       ) : posts.length === 0 ? (
         <p className="text-center text-gray-500 mt-10">No posts yet. Be the first to post!</p>
       ) : (
-        posts.map(post => (
-          <PostCard 
-            key={post.id} 
-            post={post} 
-            onDelete={(id) => setPosts(posts.filter(p => p.id !== id))} 
-          />
-        ))
+        <>
+          {posts.map(post => (
+            <PostCard key={post.id} post={post} onDelete={(id) => setPosts(posts.filter(p => p.id !== id))} />
+          ))}
+          
+          {/* Load More Button */}
+          {hasMore && (
+            <div className="text-center mt-6 mb-10">
+              <button 
+                onClick={() => fetchPosts(true)} 
+                className="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg font-medium hover:bg-gray-300 transition"
+              >
+                Load More Posts
+              </button>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
