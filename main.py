@@ -59,7 +59,11 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
         raise HTTPException(status_code=403, detail="Account is blocked by Admin")
 
     # Create token
-    access_token = auth.create_access_token(data={"sub": user.username})
+    access_token = auth.create_access_token(data={
+        "sub": user.username,
+        "id": user.id,
+        "role": user.role
+    })
     return {"access_token": access_token, "token_type": "bearer"}
 
 
