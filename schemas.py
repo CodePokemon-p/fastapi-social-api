@@ -24,8 +24,12 @@ class PostResponse(BaseModel):
     id: int
     body: str
     user_id: int
+    username: str  
     allow_comments: bool
     created_at: datetime
+
+    class Config:
+        from_attributes = True
 
     class Config:
         from_attributes = True
@@ -39,6 +43,7 @@ class CommentResponse(BaseModel):
     post_id: int
     user_id: int
     is_pinned: bool
+    username: str
     created_at: datetime
 
     class Config:

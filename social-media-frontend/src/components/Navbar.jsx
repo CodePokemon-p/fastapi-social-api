@@ -15,21 +15,26 @@ export default function Navbar() {
   return (
     <nav className="bg-white shadow-md">
       <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-        {/* Logo */}
         <Link to="/" className="text-2xl font-bold text-brand">
           SocialApp
         </Link>
 
-        {/* Links */}
         <div className="flex items-center space-x-6">
           <Link to="/" className="text-gray-600 hover:text-brand flex items-center gap-1">
             <Home size={20} /> Feed
           </Link>
           
+          {/* ONLY SHOW ADMIN LINK IF ROLE IS ADMIN */}
+          {user?.role === 'admin' && (
+            <Link to="/admin" className="text-gray-600 hover:text-brand flex items-center gap-1 font-bold">
+              <Shield size={20} className="text-red-500" /> Admin
+            </Link>
+          )}
+
           {user ? (
             <>
               <Link to="/profile" className="text-gray-600 hover:text-brand flex items-center gap-1">
-                <User size={20} /> Profile
+                <User size={20} /> {user.username}
               </Link>
               <button 
                 onClick={handleLogout} 

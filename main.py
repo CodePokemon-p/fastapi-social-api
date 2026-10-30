@@ -241,3 +241,28 @@ def pin_comment(comment_id: int, db: Session = Depends(get_db), current_user: mo
     db_comment.is_pinned = not db_comment.is_pinned
     db.commit()
     return {"message": f"Comment pinned status: {db_comment.is_pinned}"}
+
+@app.delete("/posts/{post_id}")
+def delete_post(post_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
+    post = db.query(models.Post).filter(models.Post.id == post_id).first()
+    if not post:
+        raise HTTPException(status_code=404, detail="Post not found")
+
+    # Only Admin or Post Owner can delete
+    if current_user.role != "admin" and post.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized to delete this post")
+
+    # Delete comments and likes first to avoid foreign key errors
+    db.query(models.Comment).filter(models.Comment.post_id == post_id).delete()
+    db.query(models.Like).filter(models.Like.post_id == post_id).delete()
+    
+    db.delete(post)
+    db.commit()
+    return {"message": "Post deleted successfully"}
+
+@app.get("/posts/{post_id}", response_model=schemas.PostResponse)
+def get_single_post(post_id: int, db: Session = Depends(get_db)):
+    post = db.query(models.Post).filter(models.Post.id == post_id).first()
+    if not post:
+        raise HTTPException(status_code=404, detail="Post not found")
+    return post

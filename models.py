@@ -30,6 +30,10 @@ class Post(Base):
     comments = relationship("Comment", back_populates="post")
     likes = relationship("Like", back_populates="post")
 
+    @property
+    def username(self):
+        return self.owner.username if self.owner else "Unknown User"
+
 class Comment(Base):
     __tablename__ = "comments"
 
@@ -43,6 +47,9 @@ class Comment(Base):
     post = relationship("Post", back_populates="comments")
     author = relationship("User", back_populates="comments")
 
+    @property
+    def username(self):
+        return self.author.username if self.author else "Unknown"
 class Like(Base):
     __tablename__ = "likes"
     __table_args__ = (UniqueConstraint("post_id", "user_id", name="unique_post_like"),)
@@ -53,3 +60,7 @@ class Like(Base):
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
     post = relationship("Post", back_populates="likes")
+
+    @property
+    def username(self):
+        return self.author.username if self.author else "Unknown"
